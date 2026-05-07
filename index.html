@@ -24,20 +24,22 @@ html,body{width:100%;height:100%;overflow:hidden;touch-action:none}
 .s-tip{position:absolute;width:12px;height:12px;background:#8b5a3a;border-radius:50%}
 .elastic{position:absolute;height:4px;background:#3a1a00;transform-origin:0 50%;border-radius:2px;z-index:8;display:none}
 
-/* Bird */
-#bird{z-index:20;cursor:grab;width:36px;height:34px}
-.b-body{width:36px;height:34px;background:radial-gradient(circle at 40% 35%,#ff4444,#cc0000);border-radius:50%;border:2px solid #990000;position:relative}
-.b-belly{position:absolute;width:20px;height:13px;background:#f5c6a0;border-radius:50%;bottom:4px;left:8px}
-.b-eye{position:absolute;width:10px;height:10px;background:#fff;border-radius:50%;top:8px}
-.b-eye.l{left:7px}.b-eye.r{left:19px}
-.b-pup{width:5px;height:5px;background:#000;border-radius:50%;position:absolute;top:3px;left:3px}
-.b-brow{position:absolute;width:13px;height:3px;background:#000;top:4px;border-radius:2px}
-.b-brow.l{left:4px;transform:rotate(25deg)}.b-brow.r{left:19px;transform:rotate(-25deg)}
-.b-beak{position:absolute;right:-7px;top:14px;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:11px solid #f39c12}
-.b-tail{position:absolute;left:-7px;top:7px;width:9px;height:14px;background:#222;clip-path:polygon(100% 0%,0% 0%,20% 50%,0% 100%,100% 100%)}
-.b-bow{position:absolute;top:-9px;left:50%;transform:translateX(-50%);white-space:nowrap}
-.bow-l{display:inline-block;width:9px;height:6px;background:#E0558A;border-radius:50%}
-.bow-c{display:inline-block;width:5px;height:5px;background:#C4728A;border-radius:50%;vertical-align:top;margin:0 -1px}
+/* Bird - Bonnie's face! */
+#bird{z-index:20;cursor:grab;width:50px;height:50px}
+.b-body{width:50px;height:50px;border-radius:50%;border:3px solid #E0558A;position:relative;overflow:hidden;box-shadow:0 0 10px rgba(224,85,138,0.6),0 0 20px rgba(224,85,138,0.3)}
+.b-photo{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.b-brow{display:none}
+.b-eye{display:none}
+.b-pup{display:none}
+.b-belly{display:none}
+.b-beak{display:none}
+.b-tail{display:none}
+.b-bow{position:absolute;top:-11px;left:50%;transform:translateX(-50%);white-space:nowrap;z-index:5}
+.bow-l{display:inline-block;width:11px;height:7px;background:#E0558A;border-radius:50%}
+.bow-c{display:inline-block;width:6px;height:6px;background:#C4728A;border-radius:50%;vertical-align:top;margin:0 -1px}
+/* Trail sparkle */
+.sparkle{position:absolute;width:8px;height:8px;background:radial-gradient(circle,#FFD700,transparent);border-radius:50%;pointer-events:none;z-index:19;animation:sparkFade 0.6s forwards}
+@keyframes sparkFade{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(0.2)}}
 
 /* Pig */
 .pig{z-index:15}
@@ -69,7 +71,8 @@ html,body{width:100%;height:100%;overflow:hidden;touch-action:none}
 
 /* Birds left */
 #bl{position:absolute;bottom:8px;left:8px;z-index:100;display:flex;gap:5px}
-.mb{width:16px;height:15px;background:radial-gradient(circle at 40% 35%,#ff4444,#cc0000);border-radius:50%;border:1.5px solid #990000}
+.mb{width:20px;height:20px;border-radius:50%;border:2px solid #E0558A;overflow:hidden;box-shadow:0 0 5px rgba(224,85,138,0.4)}
+.mb img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 
 /* Flower */
 .fl{position:absolute;z-index:5;width:12px;height:12px}
@@ -104,17 +107,12 @@ html,body{width:100%;height:100%;overflow:hidden;touch-action:none}
   <div class="elastic" id="el1"></div>
   <div class="elastic" id="el2"></div>
 
-  <!-- Bird -->
+  <!-- Bird - Bonnie! -->
   <div id="bird" class="obj">
     <div class="b-body">
-      <div class="b-brow l"></div><div class="b-brow r"></div>
-      <div class="b-eye l"><div class="b-pup"></div></div>
-      <div class="b-eye r"><div class="b-pup"></div></div>
-      <div class="b-belly"></div>
-      <div class="b-beak"></div>
-      <div class="b-tail"></div>
-      <div class="b-bow"><span class="bow-l"></span><span class="bow-c"></span><span class="bow-l"></span></div>
+      <img class="b-photo" src="bonnie.jpg" alt="Bonnie">
     </div>
+    <div class="b-bow"><span class="bow-l"></span><span class="bow-c"></span><span class="bow-l"></span></div>
   </div>
 
   <!-- Pigs (placed by JS) -->
@@ -193,8 +191,18 @@ function updateBL() {
   for (var i = 0; i < birdsLeft; i++) {
     var m = document.createElement('div');
     m.className = 'mb';
+    m.innerHTML = '<img src="bonnie.jpg">';
     blEl.appendChild(m);
   }
+}
+
+var sparkleTimer = 0;
+function addSparkle(x, y) {
+  var s = document.createElement('div');
+  s.className = 'sparkle';
+  G.appendChild(s);
+  px(s, x + (Math.random()-0.5)*20, y + (Math.random()-0.5)*20);
+  setTimeout(function(){ s.remove(); }, 600);
 }
 
 function showPts(x,y,pts) {
@@ -211,10 +219,10 @@ function placeSling() {
 }
 
 function placeBird() {
-  bird = { x: SLX(), y: SLY() - 44, vx: 0, vy: 0, r: 17, alive: true, launched: false };
+  bird = { x: SLX(), y: SLY() - 44, vx: 0, vy: 0, r: 25, alive: true, launched: false };
   birdEl.style.display = 'block';
   birdEl.style.opacity = '1';
-  px(birdEl, bird.x - 18, bird.y - 17);
+  px(birdEl, bird.x - 25, bird.y - 25);
 }
 
 function startGame() {
@@ -298,7 +306,7 @@ function onM(e){
   var dx=p.x-sx, dy=p.y-sy, d=Math.sqrt(dx*dx+dy*dy), mx=90;
   if(d>mx){bird.x=sx+(dx/d)*mx;bird.y=sy+(dy/d)*mx;}
   else{bird.x=p.x;bird.y=p.y;}
-  px(birdEl,bird.x-18,bird.y-17);
+  px(birdEl,bird.x-25,bird.y-25);
   showElastic(bird.x,bird.y);
 }
 function onU(e){
@@ -306,7 +314,7 @@ function onU(e){
   dragging=false;
   var sx=SLX(),sy=SLY()-44;
   var dx=sx-bird.x,dy=sy-bird.y;
-  if(Math.sqrt(dx*dx+dy*dy)<10){bird.x=sx;bird.y=sy;px(birdEl,bird.x-18,bird.y-17);hideElastic();return;}
+  if(Math.sqrt(dx*dx+dy*dy)<10){bird.x=sx;bird.y=sy;px(birdEl,bird.x-25,bird.y-25);hideElastic();return;}
   bird.vx=dx*0.2;bird.vy=dy*0.2;
   bird.launched=true;
   hideElastic();
@@ -405,7 +413,10 @@ function update(){
       }
     }
 
-    px(birdEl,bird.x-18,bird.y-17);
+    px(birdEl,bird.x-25,bird.y-25);
+    // Sparkle trail
+    sparkleTimer++;
+    if(sparkleTimer%3===0) addSparkle(bird.x, bird.y);
   }
 
   // Block physics

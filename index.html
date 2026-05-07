@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Angry Bonnie</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bungee&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}
+html,body{width:100%;height:100%;overflow:hidden;touch-action:none}
+#game{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:linear-gradient(180deg,#1a6fc4 0%,#4aa3df 25%,#7ec8e3 50%,#c9e7a8 78%,#8bc34a 83%,#6d9b2e 84.5%,#5a3a1a 88%,#4a2e12 100%);
+  font-family:'Bungee',Impact,sans-serif;
+}
+#title{position:absolute;top:8px;width:100%;text-align:center;color:#fff;font-size:24px;text-shadow:2px 2px 0 #333;z-index:100;letter-spacing:2px}
+#ui{position:absolute;top:40px;width:100%;display:flex;justify-content:space-between;padding:0 15px;z-index:100;color:#fff;font-size:15px;text-shadow:1px 1px 3px rgba(0,0,0,0.6)}
+.obj{position:absolute}
+
+/* Slingshot */
+#sling{z-index:10}
+.s-stick{position:absolute;width:10px;border-radius:3px;background:linear-gradient(90deg,#5c3317,#8b5a3a)}
+.s-base{position:absolute;width:44px;height:14px;background:#4a2510;border-radius:50%}
+.s-tip{position:absolute;width:12px;height:12px;background:#8b5a3a;border-radius:50%}
+.elastic{position:absolute;height:4px;background:#3a1a00;transform-origin:0 50%;border-radius:2px;z-index:8;display:none}
+
+/* Bird */
+#bird{z-index:20;cursor:grab;width:36px;height:34px}
+.b-body{width:36px;height:34px;background:radial-gradient(circle at 40% 35%,#ff4444,#cc0000);border-radius:50%;border:2px solid #990000;position:relative}
+.b-belly{position:absolute;width:20px;height:13px;background:#f5c6a0;border-radius:50%;bottom:4px;left:8px}
+.b-eye{position:absolute;width:10px;height:10px;background:#fff;border-radius:50%;top:8px}
+.b-eye.l{left:7px}.b-eye.r{left:19px}
+.b-pup{width:5px;height:5px;background:#000;border-radius:50%;position:absolute;top:3px;left:3px}
+.b-brow{position:absolute;width:13px;height:3px;background:#000;top:4px;border-radius:2px}
+.b-brow.l{left:4px;transform:rotate(25deg)}.b-brow.r{left:19px;transform:rotate(-25deg)}
+.b-beak{position:absolute;right:-7px;top:14px;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:11px solid #f39c12}
+.b-tail{position:absolute;left:-7px;top:7px;width:9px;height:14px;background:#222;clip-path:polygon(100% 0%,0% 0%,20% 50%,0% 100%,100% 100%)}
+.b-bow{position:absolute;top:-9px;left:50%;transform:translateX(-50%);white-space:nowrap}
+.bow-l{display:inline-block;width:9px;height:6px;background:#E0558A;border-radius:50%}
+.bow-c{display:inline-block;width:5px;height:5px;background:#C4728A;border-radius:50%;vertical-align:top;margin:0 -1px}
+
+/* Pig */
+.pig{z-index:15}
+.p-body{border-radius:50%;border:2px solid #1a8a3a;position:relative;overflow:visible}
+.p-fill{position:absolute;top:0;left:0;right:0;bottom:0;border-radius:50%;background:radial-gradient(circle at 40% 35%,#5cdb5c,#2ecc71)}
+.p-eye{position:absolute;width:9px;height:9px;background:#fff;border-radius:50%;top:25%}
+.p-eye.l{left:18%}.p-eye.r{right:18%}
+.pp{width:4px;height:4px;background:#000;border-radius:50%;position:absolute;top:3px;left:3px}
+.p-snout{position:absolute;width:14px;height:9px;background:#6adf6a;border-radius:50%;bottom:22%;left:50%;transform:translateX(-50%)}
+.p-nos{position:absolute;width:3px;height:3px;background:#1a7a3a;border-radius:50%;bottom:26%}
+.p-nos.l{left:calc(50% - 4px)}.p-nos.r{left:calc(50% + 1px)}
+.p-ear{position:absolute;width:9px;height:6px;background:#2ecc71;border-radius:50%;top:-1px}
+.p-ear.l{left:3px;transform:rotate(-20deg)}.p-ear.r{right:3px;transform:rotate(20deg)}
+
+/* Block */
+.block{z-index:12;border-radius:2px;border:1px solid rgba(0,0,0,0.2);background:linear-gradient(180deg,#deb887,#c4a56e);box-shadow:inset 0 0 4px rgba(0,0,0,0.15)}
+.block.crack{background:linear-gradient(180deg,#d4a868,#b0905a);opacity:0.7}
+
+/* Score pop */
+.spop{position:absolute;color:#FFD700;font-size:18px;font-weight:bold;text-shadow:1px 1px 3px rgba(0,0,0,0.7);z-index:200;pointer-events:none;animation:pu 1s forwards}
+@keyframes pu{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-50px) scale(1.3)}}
+
+/* Overlay */
+#ov{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);display:none;z-index:500;justify-content:center;align-items:center;flex-direction:column}
+#ov.show{display:flex}
+#ov h1{color:#FFD700;font-size:32px;text-shadow:2px 2px 0 #333;margin-bottom:8px}
+#ov p{color:#fff;font-size:18px;margin-bottom:16px}
+#ov button{background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:3px solid #fff;padding:12px 36px;font-size:18px;border-radius:30px;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(0,0,0,0.4)}
+
+/* Birds left */
+#bl{position:absolute;bottom:8px;left:8px;z-index:100;display:flex;gap:5px}
+.mb{width:16px;height:15px;background:radial-gradient(circle at 40% 35%,#ff4444,#cc0000);border-radius:50%;border:1.5px solid #990000}
+
+/* Flower */
+.fl{position:absolute;z-index:5;width:12px;height:12px}
+.fl i{position:absolute;width:5px;height:5px;border-radius:50%;background:#FF69B4}
+.fl i:nth-child(1){top:0;left:3px}.fl i:nth-child(2){top:3px;left:7px}.fl i:nth-child(3){top:7px;left:5px}.fl i:nth-child(4){top:7px;left:1px}.fl i:nth-child(5){top:3px;left:-1px}
+.fl b{position:absolute;width:4px;height:4px;background:#FFD700;border-radius:50%;top:4px;left:4px}
+
+/* Cloud */
+.cl{position:absolute;z-index:2}
+.cl i{position:absolute;background:rgba(255,255,255,0.7);border-radius:50%}
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="title">ANGRY BONNIE</div>
+  <div id="ui"><span id="info">x3 Drag & release!</span><span id="score">0</span></div>
+  <div id="bl"></div>
+
+  <!-- Clouds (static) -->
+  <div class="cl" style="left:5%;top:5%"><i style="width:40px;height:40px;left:0;top:0"></i><i style="width:32px;height:32px;left:22px;top:-5px"></i><i style="width:28px;height:28px;left:42px;top:2px"></i></div>
+  <div class="cl" style="left:38%;top:3%"><i style="width:50px;height:50px;left:0;top:0"></i><i style="width:40px;height:40px;left:28px;top:-6px"></i><i style="width:34px;height:34px;left:52px;top:3px"></i><i style="width:26px;height:26px;left:20px;top:12px"></i></div>
+  <div class="cl" style="left:72%;top:7%"><i style="width:36px;height:36px;left:0;top:0"></i><i style="width:28px;height:28px;left:20px;top:-4px"></i><i style="width:24px;height:24px;left:38px;top:2px"></i></div>
+
+  <!-- Slingshot -->
+  <div id="sling" class="obj">
+    <div class="s-stick" style="left:-7px;top:-58px;height:62px"></div>
+    <div class="s-stick" style="left:5px;top:-58px;height:62px"></div>
+    <div class="s-base" style="left:-18px;top:4px"></div>
+    <div class="s-tip" style="left:-12px;top:-64px"></div>
+    <div class="s-tip" style="left:0px;top:-64px"></div>
+  </div>
+  <div class="elastic" id="el1"></div>
+  <div class="elastic" id="el2"></div>
+
+  <!-- Bird -->
+  <div id="bird" class="obj">
+    <div class="b-body">
+      <div class="b-brow l"></div><div class="b-brow r"></div>
+      <div class="b-eye l"><div class="b-pup"></div></div>
+      <div class="b-eye r"><div class="b-pup"></div></div>
+      <div class="b-belly"></div>
+      <div class="b-beak"></div>
+      <div class="b-tail"></div>
+      <div class="b-bow"><span class="bow-l"></span><span class="bow-c"></span><span class="bow-l"></span></div>
+    </div>
+  </div>
+
+  <!-- Pigs (placed by JS) -->
+  <!-- Blocks (placed by JS) -->
+
+  <div id="ov">
+    <h1 id="ovt">Level Clear!</h1>
+    <p id="ovs"></p>
+    <button onclick="startGame()">Play Again</button>
+  </div>
+</div>
+
+<script>
+var G = document.getElementById('game');
+var scoreEl = document.getElementById('score');
+var infoEl = document.getElementById('info');
+var blEl = document.getElementById('bl');
+var birdEl = document.getElementById('bird');
+var slingEl = document.getElementById('sling');
+var el1 = document.getElementById('el1');
+var el2 = document.getElementById('el2');
+var ov = document.getElementById('ov');
+var ovt = document.getElementById('ovt');
+var ovs = document.getElementById('ovs');
+
+var W = window.innerWidth, H = window.innerHeight;
+window.onresize = function(){ W = window.innerWidth; H = window.innerHeight; };
+
+var GY = function(){ return Math.floor(H * 0.83); };
+var SLX = function(){ return Math.floor(W * 0.18); };
+var SLY = function(){ return GY() - 10; };
+
+var GRAV = 0.35;
+var pigs = [], blocks = [], score, birdsLeft, bird, dragging, gameOver, levelCleared;
+var pigEls = [], blockEls = [];
+
+function px(e,x,y){ e.style.left = x+'px'; e.style.top = y+'px'; }
+function sz(e,w,h){ e.style.width = w+'px'; e.style.height = h+'px'; }
+
+function makePig(x, y, r) {
+  var d = r*2;
+  var e = document.createElement('div');
+  e.className = 'obj pig';
+  e.innerHTML = '<div class="p-body" style="width:'+d+'px;height:'+d+'px"><div class="p-fill"></div><div class="p-ear l"></div><div class="p-ear r"></div><div class="p-eye l"><div class="pp"></div></div><div class="p-eye r"><div class="pp"></div></div><div class="p-snout"></div><div class="p-nos l"></div><div class="p-nos r"></div></div>';
+  G.appendChild(e);
+  px(e, x - r, y - r);
+  pigEls.push(e);
+  return { el: e, x: x, y: y, r: r, hp: 2, vx: 0, vy: 0 };
+}
+
+function makeBlock(x, y, w, h) {
+  var e = document.createElement('div');
+  e.className = 'obj block';
+  G.appendChild(e);
+  px(e, x, y);
+  sz(e, w, h);
+  blockEls.push(e);
+  return { el: e, x: x, y: y, w: w, h: h, hp: 3, vx: 0, vy: 0 };
+}
+
+function makeFlowers() {
+  var cols = ['#FF69B4','#FFB6C1','#FF6EB4','#E0558A','#FFA0B4','#FF85A2','#FF1493','#FFB0C4'];
+  for (var i = 0; i < 8; i++) {
+    var f = document.createElement('div');
+    f.className = 'fl';
+    f.innerHTML = '<i></i><i></i><i></i><i></i><i></i><b></b>';
+    var is = f.querySelectorAll('i');
+    for(var j=0;j<is.length;j++) is[j].style.background = cols[i%cols.length];
+    G.appendChild(f);
+    px(f, W*(0.04+i*0.12), GY()-4);
+  }
+}
+
+function updateBL() {
+  blEl.innerHTML = '';
+  for (var i = 0; i < birdsLeft; i++) {
+    var m = document.createElement('div');
+    m.className = 'mb';
+    blEl.appendChild(m);
+  }
+}
+
+function showPts(x,y,pts) {
+  var s = document.createElement('div');
+  s.className = 'spop';
+  s.textContent = '+'+pts;
+  G.appendChild(s);
+  px(s, x-15, y-20);
+  setTimeout(function(){ s.remove(); }, 1000);
+}
+
+function placeSling() {
+  px(slingEl, SLX(), SLY());
+}
+
+function placeBird() {
+  bird = { x: SLX(), y: SLY() - 44, vx: 0, vy: 0, r: 17, alive: true, launched: false };
+  birdEl.style.display = 'block';
+  birdEl.style.opacity = '1';
+  px(birdEl, bird.x - 18, bird.y - 17);
+}
+
+function startGame() {
+  // Remove old pigs/blocks/flowers/score pops
+  pigEls.forEach(function(e){ e.remove(); });
+  blockEls.forEach(function(e){ e.remove(); });
+  G.querySelectorAll('.fl,.spop').forEach(function(e){ e.remove(); });
+  pigEls = []; blockEls = [];
+  pigs = []; blocks = [];
+
+  ov.classList.remove('show');
+  score = 0; birdsLeft = 3; gameOver = false; levelCleared = false; dragging = false;
+  scoreEl.textContent = '0';
+  infoEl.textContent = 'x3 Drag & release!';
+
+  placeSling();
+  placeBird();
+  makeFlowers();
+
+  var bx = Math.floor(W * 0.65);
+  var gy = GY();
+  pigs.push(makePig(bx+30, gy-20, 18));
+  pigs.push(makePig(bx+100, gy-20, 18));
+  pigs.push(makePig(bx+65, gy-88, 16));
+
+  blocks.push(makeBlock(bx, gy-55, 15, 55));
+  blocks.push(makeBlock(bx+60, gy-55, 15, 55));
+  blocks.push(makeBlock(bx+70, gy-55, 15, 55));
+  blocks.push(makeBlock(bx+130, gy-55, 15, 55));
+  blocks.push(makeBlock(bx-5, gy-68, 80, 13));
+  blocks.push(makeBlock(bx+65, gy-68, 80, 13));
+  blocks.push(makeBlock(bx+45, gy-105, 12, 37));
+  blocks.push(makeBlock(bx+85, gy-105, 12, 37));
+  blocks.push(makeBlock(bx+40, gy-112, 62, 10));
+
+  updateBL();
+}
+
+// Elastic
+var slL, slR;
+function getSlingAnchors() {
+  slL = { x: SLX() - 7, y: SLY() - 60 };
+  slR = { x: SLX() + 5, y: SLY() - 60 };
+}
+
+function showElastic(bx, by) {
+  getSlingAnchors();
+  [[el1, slL], [el2, slR]].forEach(function(pair) {
+    var e = pair[0], a = pair[1];
+    var dx = bx - a.x, dy = by - a.y;
+    var len = Math.sqrt(dx*dx+dy*dy);
+    var ang = Math.atan2(dy,dx)*180/Math.PI;
+    e.style.display = 'block';
+    e.style.width = len+'px';
+    e.style.left = a.x+'px';
+    e.style.top = a.y+'px';
+    e.style.transform = 'rotate('+ang+'deg)';
+  });
+}
+function hideElastic() { el1.style.display='none'; el2.style.display='none'; }
+
+// Input
+function gp(e){ var t=e.touches?e.touches[0]:e; return {x:t.clientX,y:t.clientY}; }
+G.addEventListener('mousedown',onD);
+G.addEventListener('mousemove',onM);
+G.addEventListener('mouseup',onU);
+G.addEventListener('touchstart',onD,{passive:false});
+G.addEventListener('touchmove',onM,{passive:false});
+G.addEventListener('touchend',onU);
+
+function onD(e){
+  e.preventDefault();
+  if(gameOver||levelCleared||!bird||bird.launched) return;
+  var p=gp(e), dx=p.x-bird.x, dy=p.y-bird.y;
+  if(Math.sqrt(dx*dx+dy*dy)<60) dragging=true;
+}
+function onM(e){
+  e.preventDefault();
+  if(!dragging) return;
+  var p=gp(e), sx=SLX(), sy=SLY()-44;
+  var dx=p.x-sx, dy=p.y-sy, d=Math.sqrt(dx*dx+dy*dy), mx=90;
+  if(d>mx){bird.x=sx+(dx/d)*mx;bird.y=sy+(dy/d)*mx;}
+  else{bird.x=p.x;bird.y=p.y;}
+  px(birdEl,bird.x-18,bird.y-17);
+  showElastic(bird.x,bird.y);
+}
+function onU(e){
+  if(!dragging)return;
+  dragging=false;
+  var sx=SLX(),sy=SLY()-44;
+  var dx=sx-bird.x,dy=sy-bird.y;
+  if(Math.sqrt(dx*dx+dy*dy)<10){bird.x=sx;bird.y=sy;px(birdEl,bird.x-18,bird.y-17);hideElastic();return;}
+  bird.vx=dx*0.2;bird.vy=dy*0.2;
+  bird.launched=true;
+  hideElastic();
+  birdsLeft--;
+  updateBL();
+  infoEl.textContent='x'+birdsLeft+' left';
+}
+
+function dd(a,b){return Math.sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y));}
+function cr(cx,cy,r,rx,ry,rw,rh){
+  var clx=Math.max(rx,Math.min(cx,rx+rw));
+  var cly=Math.max(ry,Math.min(cy,ry+rh));
+  var dx=cx-clx,dy=cy-cly;
+  return(dx*dx+dy*dy)<(r*r);
+}
+
+function nextBird(){
+  if(levelCleared)return;
+  if(birdsLeft<=0){
+    if(!allPigsDead()){
+      gameOver=true;
+      ovt.textContent='Game Over!';
+      ovs.textContent='Score: '+score;
+      ov.classList.add('show');
+    }
+    return;
+  }
+  placeBird();
+}
+
+function allPigsDead(){
+  for(var i=0;i<pigs.length;i++) if(pigs[i].hp>0) return false;
+  return true;
+}
+
+function update(){
+  if(gameOver||levelCleared||!bird) return;
+  var gy=GY();
+
+  if(bird.launched&&bird.alive){
+    bird.vy+=GRAV;
+    bird.x+=bird.vx;
+    bird.y+=bird.vy;
+
+    if(bird.y+bird.r>gy){
+      bird.y=gy-bird.r;
+      bird.vy*=-0.3;bird.vx*=0.7;
+      if(Math.abs(bird.vy)<1.5&&Math.abs(bird.vx)<0.8){
+        bird.alive=false;
+        birdEl.style.opacity='0.4';
+        setTimeout(function(){birdEl.style.display='none';nextBird();},600);
+      }
+    }
+    if(bird.x>W+50||bird.x<-50){
+      bird.alive=false;
+      birdEl.style.display='none';
+      setTimeout(nextBird,400);
+    }
+
+    // Hit pigs
+    for(var i=0;i<pigs.length;i++){
+      var p=pigs[i];
+      if(p.hp<=0)continue;
+      if(dd(bird,p)<bird.r+p.r){
+        var sp=Math.sqrt(bird.vx*bird.vx+bird.vy*bird.vy);
+        p.hp-=Math.ceil(sp/4);
+        p.vx+=bird.vx*0.3;p.vy+=bird.vy*0.3-3;
+        bird.vx*=0.5;bird.vy*=0.5;
+        if(p.hp<=0){
+          score+=500;
+          showPts(p.x,p.y-20,500);
+          p.el.style.transition='opacity 0.3s,transform 0.3s';
+          p.el.style.opacity='0';
+          p.el.style.transform='scale(0.5)';
+        }
+      }
+    }
+
+    // Hit blocks
+    for(var i=0;i<blocks.length;i++){
+      var bl=blocks[i];
+      if(bl.hp<=0)continue;
+      if(cr(bird.x,bird.y,bird.r,bl.x,bl.y,bl.w,bl.h)){
+        var sp=Math.sqrt(bird.vx*bird.vx+bird.vy*bird.vy);
+        bl.hp-=Math.ceil(sp/3);
+        bl.vx=bird.vx*0.2;bl.vy=-3;
+        bird.vx*=0.6;bird.vy*=0.6;
+        if(bl.hp<=0){
+          score+=100;
+          showPts(bl.x+bl.w/2,bl.y,100);
+          bl.el.style.transition='opacity 0.3s';
+          bl.el.style.opacity='0';
+        }else if(bl.hp<=1){
+          bl.el.classList.add('crack');
+        }
+      }
+    }
+
+    px(birdEl,bird.x-18,bird.y-17);
+  }
+
+  // Block physics
+  for(var i=0;i<blocks.length;i++){
+    var bl=blocks[i];
+    if(bl.hp<=0)continue;
+    if(bl.vx||bl.vy){
+      bl.vy+=GRAV*0.5;bl.x+=bl.vx;bl.y+=bl.vy;bl.vx*=0.95;
+      if(bl.y+bl.h>gy){bl.y=gy-bl.h;bl.vy=0;bl.vx*=0.5;}
+      px(bl.el,bl.x,bl.y);
+    }
+  }
+
+  // Pig physics
+  for(var i=0;i<pigs.length;i++){
+    var p=pigs[i];
+    if(p.hp<=0)continue;
+    if(p.vx||p.vy){
+      p.vy+=GRAV;p.x+=p.vx;p.y+=p.vy;p.vx*=0.95;
+      if(p.y+p.r>gy){p.y=gy-p.r;p.vy*=-0.3;p.vx*=0.5;if(Math.abs(p.vy)<1)p.vy=0;}
+      px(p.el,p.x-p.r,p.y-p.r);
+    }
+  }
+
+  // Win
+  if(allPigsDead()&&!levelCleared){
+    levelCleared=true;
+    score+=birdsLeft*1000;
+    ovt.textContent='Level Clear!';
+    ovs.textContent='Score: '+score;
+    setTimeout(function(){ov.classList.add('show');},500);
+  }
+
+  scoreEl.textContent=score;
+}
+
+function loop(){update();requestAnimationFrame(loop);}
+startGame();
+loop();
+</script>
+</body>
+</html>
